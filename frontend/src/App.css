@@ -1,0 +1,707 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+@import url("https://fonts.googleapis.com/css?family=Poppins:100,200,300,400,500,600,700,800,900&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+section {
+  position: relative;
+  min-height: 100vh;
+  background-color: #01d0eb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  position: relative;
+  width: 900px;
+  height: 600px;
+  background: #fff;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.user {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.imgBx {
+  position: relative;
+  width: 50%;
+  height: 100%;
+  background: #ff0;
+  transition: 0.5s;
+}
+
+.imgBx img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.formBx {
+    position: relative;
+    width: 50%;
+    height: 100%;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 117px;
+    transition: 0.5s;
+}
+
+form h2 {
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-align: center;
+  width: 100%;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+form input {
+  width: 100%;
+  padding: 10px;
+  background: #f5f5f5;
+  color: #333;
+  border: none;
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+form input[type="submit"],
+form input[type="button"] {
+    max-width: 239px;
+    background: #677eff;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.5s;
+    margin-inline: 10px;
+}
+
+.signup {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #555;
+}
+
+.signup a {
+  text-decoration: none;
+  color: #677eff;
+}
+
+.container.active .signupBx {
+  pointer-events: initial;
+}
+
+.container.active .signinBx {
+  pointer-events: none;
+}
+
+.error {
+  color: red;
+  font-size: 12px;
+}
+
+@media (max-width: 991px) {
+  .container {
+    max-width: 400px;
+  }
+
+  .imgBx {
+    display: none;
+  }
+
+  .formBx {
+    width: 100%;
+  }
+}
+
+.equal-height {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.equal-height .card-body {
+  flex: 1;
+}
+
+/* Manager.css */
+.manager {
+  font-family: 'Arial', sans-serif;
+  margin: 20px;
+}
+
+.navbar {
+  background-color: #333;
+  padding: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 0 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.nav-button:hover {
+  background-color: #45a049;
+}
+
+.nav-button.active {
+  background-color: #333;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.loan-approval,
+.deposit-money {
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  margin-bottom: 20px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.fetch-loans-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  display: block;
+  margin: 0 auto 20px;
+  transition: background-color 0.3s;
+}
+
+.fetch-loans-btn:hover {
+  background-color: #0056b3;
+}
+
+.loan-list {
+  list-style: none;
+  padding: 0;
+}
+
+.loan-item {
+  border: 1px solid #ddd;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #f4f4f4;
+}
+
+.loan-details {
+  margin-bottom: 15px;
+}
+
+.loan-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.approve-btn,
+.deny-btn {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.approve-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.approve-btn:hover {
+  background-color: #218838;
+}
+
+.deny-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.deny-btn:hover {
+  background-color: #c82333;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.deposit-btn {
+  background-color: #ffc107;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  width: 100%;
+  transition: background-color 0.3s;
+}
+
+.deposit-btn:hover {
+  background-color: #e0a800;
+}
+
+/* General styles */
+.manager {
+  font-family: Arial, sans-serif;
+}
+
+.navbar {
+  background-color: #333;
+  padding: 10px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.nav-button {
+  background-color: #555;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.nav-button:hover {
+  background-color: #777;
+}
+
+.nav-button.active {
+  background-color: #007bff;
+}
+
+/* Container styles */
+.container {
+  padding: 20px;
+  margin-top: 20px;
+}
+
+/* Loan Approval Section */
+.loan-approval {
+  margin-top: 20px;
+}
+
+.fetch-loans-btn {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.fetch-loans-btn:hover {
+  background-color: #218838;
+}
+
+/* Scrollable Loan List */
+.loan-list {
+  list-style: none;
+  padding: 0;
+  max-height: 400px; /* Adjust height as needed */
+  overflow-y: auto; /* Make the container scrollable */
+  border: 1px solid #ddd;
+  margin-top: 10px;
+}
+
+.loan-item {
+  border-bottom: 1px solid #ddd;
+  padding: 10px;
+}
+
+.loan-details {
+  padding: 10px;
+}
+
+.loan-actions {
+  margin-top: 10px;
+}
+
+.approve-btn,
+.deny-btn {
+  padding: 5px 10px;
+  margin-right: 10px;
+  border: none;
+  cursor: pointer;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.approve-btn {
+  background-color: #28a745;
+}
+
+.approve-btn:hover {
+  background-color: #218838;
+}
+
+.deny-btn {
+  background-color: #dc3545;
+}
+
+.view-reports {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.reports-title, .new-customer-title {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.fetch-reports-btn {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.fetch-reports-btn:hover {
+  background-color: #45a049;
+}
+
+.report-list, .new-customer-list {
+  list-style: none;
+  padding: 0;
+}
+
+.report-item, .new-customer-item {
+  background-color: #fff;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 8px;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+}
+
+.report-details, .new-customer-details {
+  display: flex;
+  flex-direction: column;
+}
+
+strong {
+  color: #333;
+}
+
+.verified {
+  color: #4CAF50;
+}
+
+.verify-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensures it stays on top */
+}
+
+.modal-content {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  width: 400px; /* Adjust width as needed */
+  max-width: 90%; /* Responsive width */
+}
+
+h2 {
+  margin-bottom: 20px; /* Space below the title */
+  text-align: center; /* Center title */
+}
+
+label {
+  display: block; /* Stack labels */
+  margin-bottom: 10px; /* Space between labels */
+}
+
+input {
+  width: 100%; /* Full width inputs */
+  padding: 8px; /* Inner spacing */
+  margin-top: 5px; /* Space above inputs */
+  border: 1px solid #ccc; /* Light border */
+  border-radius: 4px; /* Rounded corners */
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between; /* Space between buttons */
+  margin-top: 20px; /* Space above buttons */
+}
+
+.update-btn {
+  background-color: #4CAF50; /* Green background */
+  color: white; /* White text */
+  border: none; /* Remove border */
+  padding: 10px 20px; /* Padding around text */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor */
+}
+
+.update-btn:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
+.cancel-btn {
+  background-color: #f44336; /* Red background */
+  color: white; /* White text */
+  border: none; /* Remove border */
+  padding: 10px 20px; /* Padding around text */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor */
+}
+
+.cancel-btn:hover {
+  background-color: #e53935; /* Darker red on hover */
+}
+
+
+.accounts-container {
+  max-height: 300px; 
+  overflow-y: auto;
+  border: 1px solid #ccc; 
+  padding: 10px; 
+  margin-top: 10px;
+  background-color: #f9f9f9; 
+}
+
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+}
+
+
+.verify-btn:hover {
+  background-color: #45a049;
+}
+
+.not-verified {
+  color: #f44336;
+}
+
+.verify-btn {
+  padding: 8px 15px;
+  background-color: #008CBA;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.verify-btn:hover {
+  background-color: #007bb5;
+}
+
+
+.deny-btn:hover {
+  background-color: #c82333;
+}
+
+/* Deposit Money Section */
+.deposit-money {
+  margin-top: 20px;
+}
+
+.input-field {
+  padding: 10px;
+  margin: 10px 0;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.deposit-btn {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.deposit-btn:hover {
+  background-color: #0056b3;
+}
+
+.verify-btn {
+  background-color: #4CAF50; /* Green background */
+  border: none; /* Remove borders */
+  color: white; /* White text */
+  padding: 10px 20px; /* Padding */
+  text-align: center; /* Center the text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Get the button inline */
+  font-size: 16px; /* Set font size */
+  margin: 10px 2px; /* Margin around the button */
+  cursor: pointer; /* Cursor pointer on hover */
+  border-radius: 4px; /* Rounded corners */
+  transition: background-color 0.3s ease; /* Transition for hover effect */
+}
+
+.verify-btn:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
+
+.new-customer-section {
+  margin-top: 20px; /* Space above the section */
+  padding: 20px; /* Inner spacing */
+  background-color: #f9f9f9; /* Light background for contrast */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.new-customer-title {
+  font-size: 24px; /* Title size */
+  margin-bottom: 15px; /* Space below title */
+  text-align: center; /* Center title */
+}
+
+.new-customer-list {
+  list-style: none; /* Remove default list style */
+  padding: 0; /* Remove padding */
+}
+
+.new-customer-item {
+  padding: 10px; /* Inner spacing for each item */
+  margin-bottom: 10px; /* Space between items */
+  border: 1px solid #ddd; /* Light border */
+  border-radius: 4px; /* Rounded corners for items */
+  background-color: #fff; /* White background for items */
+}
+
+.verify-btn {
+  background-color: #4CAF50; /* Green background for verify button */
+  color: white; /* White text */
+  border: none; /* No border */
+  padding: 8px 12px; /* Padding for button */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+}
+
+.verify-btn:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
+
