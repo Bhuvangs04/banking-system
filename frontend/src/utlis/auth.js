@@ -1,20 +1,53 @@
-// utils/auth.js (or another relevant file)
 import { jwtDecode } from "jwt-decode";
-const secretKey = "!#*&*@#13215465454545";
 
-// Function to verify JWT token and get the role
+/**
+ * Check if a customer is authenticated with a valid, non-expired token.
+ */
 export const isAuthenticated = () => {
-  const token = localStorage.getItem("AAjwtToken");
-  if (!token) {
-    return { authenticated: false, role: null };
-  }
-
+  const token = localStorage.getItem("jwtToken");
+  if (!token) return false;
   try {
-    const decodedToken = jwtDecode(token, secretKey);
-    console.log("Decoded Token:", decodedToken);
-    return { authenticated: true, role: decodedToken?.role };
-  } catch (error) {
-    console.error("Error decoding token:", error);
-    return { authenticated: false, role: null };
+    const decoded = jwtDecode(token);
+    if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+      localStorage.removeItem("jwtToken");
+      localStorage.removeItem("refreshToken");
+      return false;
+    }
+    return true;
+  } catch {
+    localStorage.removeItem("jwtToken");
+    return false;
+  }
+};
+
+/**
+ * Check if an admin is authenticated with a valid, non-expired admin token.
+ */
+export const isAdminAuthenticated = () => {
+  const token = localStorage.getItem("adminToken");
+  if (!token) return false;
+  try {
+    const decoded = jwtDecode(token);
+    if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+      localStorage.removeItem("adminToken");
+      return false;
+    }
+    return decoded.role === "admin";
+  } catch {
+    localStorage.removeItem("adminToken");
+    return false;
+  }
+};
+
+/**
+ * Decode and return token payload data.
+ */
+export const getTokenData = (tokenKey = "jwtToken") => {
+  const token = localStorage.getItem(tokenKey);
+  if (!token) return null;
+  try {
+    return jwtDecode(token);
+  } catch {
+    return null;
   }
 };

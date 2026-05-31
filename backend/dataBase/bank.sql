@@ -1,221 +1,292 @@
+DROP DATABASE IF EXISTS bank;
 CREATE DATABASE bank;
 USE bank;
 
--- AccountType table for different account types
--- CREATE TABLE AccountType(
---     TypeID INT PRIMARY KEY AUTO_INCREMENT,
---     TypeName VARCHAR(50),          -- Name of the account type (e.g., 'Savings', 'Current')
---     Description VARCHAR(255),      -- Description of the account type
---     Benefits VARCHAR(255)          -- Benefits of this account type
--- );
-
--- Customer table with Balance field
-CREATE TABLE Customer(
-    AccountNumber VARCHAR(14) PRIMARY KEY, 
-    customerName VARCHAR(150),
-    AccountType VARCHAR(50),
-    customerPhone VARCHAR(12) UNIQUE,
-    customerEmail VARCHAR(50) UNIQUE,
-    customerAddress VARCHAR(150),
-    customerCity VARCHAR(100),
-    CustomerPassword VARCHAR(200),
-    Balance DECIMAL(20,2) DEFAULT 0.00,
-	AccountVerify TINYINT DEFAULT 0 -- Current balance for the customer
+-- ============================================================
+-- Admin table for manager/admin authentication
+-- ============================================================
+CREATE TABLE Admin (
+    AdminID INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(200) NOT NULL,
+    fullName VARCHAR(150),
+    role ENUM('admin', 'superadmin') DEFAULT 'admin',
+    isActive TINYINT DEFAULT 1,
+    lastLogin TIMESTAMP NULL DEFAULT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Indexes on customerPhone and customerEmail for optimization
+-- ============================================================
+-- Customer table with proper DECIMAL types
+-- ============================================================
+CREATE TABLE Customer (
+    AccountNumber VARCHAR(14) PRIMARY KEY,
+    customerName VARCHAR(150) NOT NULL,
+    AccountType ENUM('Savings', 'Current') NOT NULL,
+    customerPhone VARCHAR(15) UNIQUE NOT NULL,
+    customerEmail VARCHAR(100) UNIQUE NOT NULL,
+    customerAddress VARCHAR(255),
+    customerCity VARCHAR(100),
+    CustomerPassword VARCHAR(200) NOT NULL,
+    TransactionPin VARCHAR(200) DEFAULT NULL,
+    Balance DECIMAL(20,2) DEFAULT 0.00,
+    DailyTransferLimit DECIMAL(20,2) DEFAULT 500000.00,
+    AccountVerify TINYINT DEFAULT 0,
+    isActive TINYINT DEFAULT 1,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 CREATE INDEX idx_customerPhone ON Customer(customerPhone);
 CREATE INDEX idx_customerEmail ON Customer(customerEmail);
+CREATE INDEX idx_customerName ON Customer(customerName);
 
--- Loan table with AccountNumber as foreign key
-CREATE TABLE Loan(
-    LoanID INT PRIMARY KEY AUTO_INCREMENT,
-    AccountNumber VARCHAR(14),
-    LoanAmount DECIMAL(20,2), 
-    LoanInterest DECIMAL(5,2), 
-    ApprovalStatus VARCHAR(10) DEFAULT 'Pending',
-    LoanDurationMonths INT,          
-    TotalPayableAmount DECIMAL(20,2) DEFAULT 0.00,
-    AppliedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ApprovalDate TIMESTAMP NULL DEFAULT NULL,
-    FOREIGN KEY (AccountNumber) REFERENCES Customer(AccountNumber) ON DELETE CASCADE
+-- ============================================================
+-- Beneficiary table for saved transfer recipients
+-- ============================================================
+CREATE TABLE Beneficiary (
+    BeneficiaryID INT PRIMARY KEY AUTO_INCREMENT,
+    AccountNumber VARCHAR(14) NOT NULL,
+    BeneficiaryAccount VARCHAR(14) NOT NULL,
+    BeneficiaryName VARCHAR(150),
+    Nickname VARCHAR(100),
+    isActive TINYINT DEFAULT 1,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (AccountNumber) REFERENCES Customer(AccountNumber) ON DELETE CASCADE,
+    FOREIGN KEY (BeneficiaryAccount) REFERENCES Customer(AccountNumber) ON DELETE CASCADE,
+    UNIQUE KEY unique_beneficiary (AccountNumber, BeneficiaryAccount)
 );
 
--- Index on AccountNumber for faster joins with Customer table
-CREATE INDEX idx_loan_account ON Loan(AccountNumber);
+CREATE INDEX idx_beneficiary_account ON Beneficiary(AccountNumber);
 
--- WithdrawHistory table with timestamp to track withdrawals
-CREATE TABLE WithdrawHistory(
+-- ============================================================
+-- Loan table
+-- ============================================================
+CREATE TABLE Loan (
+    LoanID INT PRIMARY KEY AUTO_INCREMENT,
+    AccountNumber VARCHAR(14),
+    LoanAmount DECIMAL(20,2),
+    LoanInterest DECIMAL(5,2),
+    ApprovalStatus ENUM('Pending', 'Approved', 'Denied') DEFAULT 'Pending',
+    LoanDurationMonths INT,
+    TotalPayableAmount DECIMAL(20,2) DEFAULT 0.00,
+    MonthlyEMI DECIMAL(20,2) DEFAULT 0.00,
+    AppliedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ApprovalDate TIMESTAMP NULL DEFAULT NULL,
+    ApprovedBy INT DEFAULT NULL,
+    Remarks VARCHAR(500) DEFAULT NULL,
+    FOREIGN KEY (AccountNumber) REFERENCES Customer(AccountNumber) ON DELETE CASCADE,
+    FOREIGN KEY (ApprovedBy) REFERENCES Admin(AdminID) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_loan_account ON Loan(AccountNumber);
+CREATE INDEX idx_loan_status ON Loan(ApprovalStatus);
+
+-- ============================================================
+-- Deposit History table
+-- ============================================================
+CREATE TABLE DepositHistory (
+    DepositID INT PRIMARY KEY AUTO_INCREMENT,
+    AccountNumber VARCHAR(14),
+    DepositAmount DECIMAL(20,2),
+    BeforeBalance DECIMAL(20,2),
+    AfterBalance DECIMAL(20,2),
+    DepositedBy INT DEFAULT NULL,
+    DepositMethod VARCHAR(50) DEFAULT 'Cash',
+    DepositTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (AccountNumber) REFERENCES Customer(AccountNumber) ON DELETE CASCADE,
+    FOREIGN KEY (DepositedBy) REFERENCES Admin(AdminID) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_deposit_account ON DepositHistory(AccountNumber);
+
+-- ============================================================
+-- Withdraw History table with DECIMAL types
+-- ============================================================
+CREATE TABLE WithdrawHistory (
     WithdrawId INT PRIMARY KEY AUTO_INCREMENT,
     AccountNumber VARCHAR(14),
-    WithdrawAmount INT,
-    AfterBalance INT,
+    WithdrawAmount DECIMAL(20,2),
+    BeforeBalance DECIMAL(20,2),
+    AfterBalance DECIMAL(20,2),
     WithdrawTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (AccountNumber) REFERENCES Customer(AccountNumber) ON DELETE CASCADE
 );
 
--- Index on AccountNumber for faster joins with Customer table
 CREATE INDEX idx_withdraw_account ON WithdrawHistory(AccountNumber);
 
--- TransferMoney table with timestamp to track transfers
-CREATE TABLE TransferMoney(
+-- ============================================================
+-- Transfer Money table with DECIMAL types
+-- ============================================================
+CREATE TABLE TransferMoney (
     TransferId INT PRIMARY KEY AUTO_INCREMENT,
     AccountNumber VARCHAR(14),
     ToAccount VARCHAR(14),
+    TransferAmount DECIMAL(20,2),
+    SenderBalanceAfter DECIMAL(20,2),
+    ReceiverBalanceAfter DECIMAL(20,2),
+    Description VARCHAR(255) DEFAULT NULL,
     TransferTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    TransferAmount INT,
     FOREIGN KEY (AccountNumber) REFERENCES Customer(AccountNumber) ON DELETE CASCADE,
     FOREIGN KEY (ToAccount) REFERENCES Customer(AccountNumber) ON DELETE CASCADE
 );
 
--- Indexes on AccountNumber and ToAccount for faster query performance
 CREATE INDEX idx_transfer_account ON TransferMoney(AccountNumber);
 CREATE INDEX idx_transfer_toAccount ON TransferMoney(ToAccount);
 
--- BalanceLog table to track changes in balance (e.g., for withdrawals and transfers)
-CREATE TABLE BalanceLog(
+-- ============================================================
+-- Balance Log table with DECIMAL types
+-- ============================================================
+CREATE TABLE BalanceLog (
     LogID INT PRIMARY KEY AUTO_INCREMENT,
     AccountNumber VARCHAR(14),
-    OldBalance INT,
-    NewBalance INT,
-    ChangeAmount INT,
+    OldBalance DECIMAL(20,2),
+    NewBalance DECIMAL(20,2),
+    ChangeAmount DECIMAL(20,2),
     ChangeType VARCHAR(50),
     ChangeTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (AccountNumber) REFERENCES Customer(AccountNumber)
+    FOREIGN KEY (AccountNumber) REFERENCES Customer(AccountNumber) ON DELETE CASCADE
 );
 
--- TransactionHistory table for tracking all transactions (Deposits, Withdrawals, Transfers)
-CREATE TABLE TransactionHistory(
+CREATE INDEX idx_balance_account ON BalanceLog(AccountNumber);
+
+-- ============================================================
+-- Transaction History with DECIMAL types
+-- ============================================================
+CREATE TABLE TransactionHistory (
     TransactionID INT PRIMARY KEY AUTO_INCREMENT,
     AccountNumber VARCHAR(14),
-    TransactionType VARCHAR(50),
-    TransactionAmount INT,
+    TransactionType ENUM('Deposit', 'Withdrawal', 'Transfer', 'Receive', 'Loan Approved', 'Loan Denied') NOT NULL,
+    TransactionAmount DECIMAL(20,2),
+    BalanceAfter DECIMAL(20,2) DEFAULT NULL,
     TransactionDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    Description VARCHAR(255),  -- Optional description for the transaction
-    FOREIGN KEY (AccountNumber) REFERENCES Customer(AccountNumber)
+    Description VARCHAR(255),
+    ReferenceID VARCHAR(50) DEFAULT NULL,
+    FOREIGN KEY (AccountNumber) REFERENCES Customer(AccountNumber) ON DELETE CASCADE
 );
 
--- Trigger for logging withdrawals and updating balances
+CREATE INDEX idx_transaction_account ON TransactionHistory(AccountNumber);
+CREATE INDEX idx_transaction_type ON TransactionHistory(TransactionType);
+CREATE INDEX idx_transaction_date ON TransactionHistory(TransactionDate);
+
+-- ============================================================
+-- Notification table
+-- ============================================================
+CREATE TABLE Notification (
+    NotificationID INT PRIMARY KEY AUTO_INCREMENT,
+    AccountNumber VARCHAR(14),
+    Title VARCHAR(100) NOT NULL,
+    Message VARCHAR(500) NOT NULL,
+    Type ENUM('info', 'success', 'warning', 'alert') DEFAULT 'info',
+    IsRead TINYINT DEFAULT 0,
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (AccountNumber) REFERENCES Customer(AccountNumber) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_notification_account ON Notification(AccountNumber);
+CREATE INDEX idx_notification_read ON Notification(IsRead);
+
+-- ============================================================
+-- Login Attempts table for brute-force protection
+-- ============================================================
+CREATE TABLE LoginAttempts (
+    AttemptID INT PRIMARY KEY AUTO_INCREMENT,
+    AccountNumber VARCHAR(14),
+    IPAddress VARCHAR(45),
+    Success TINYINT DEFAULT 0,
+    AttemptTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_login_account ON LoginAttempts(AccountNumber);
+CREATE INDEX idx_login_time ON LoginAttempts(AttemptTime);
+
+-- ============================================================
+-- Triggers
+-- ============================================================
+
 DELIMITER $$
 CREATE TRIGGER log_withdrawal
 AFTER INSERT ON WithdrawHistory
 FOR EACH ROW
 BEGIN
-    DECLARE old_balance INT;
-
-    -- Fetch the old balance before the withdrawal
-    SELECT Balance INTO old_balance FROM Customer WHERE AccountNumber = NEW.AccountNumber;
-
-    -- Insert the withdrawal log into BalanceLog
     INSERT INTO BalanceLog (AccountNumber, OldBalance, NewBalance, ChangeAmount, ChangeType)
-    VALUES (NEW.AccountNumber, old_balance, NEW.AfterBalance, NEW.WithdrawAmount, 'Withdraw');
+    VALUES (NEW.AccountNumber, NEW.BeforeBalance, NEW.AfterBalance, NEW.WithdrawAmount, 'Withdrawal');
 
-    -- Insert the transaction into TransactionHistory
-    INSERT INTO TransactionHistory (AccountNumber, TransactionType, TransactionAmount, Description)
-    VALUES (NEW.AccountNumber, 'Withdrawal', NEW.WithdrawAmount, CONCAT('Withdrawn amount ', NEW.WithdrawAmount));
+    INSERT INTO TransactionHistory (AccountNumber, TransactionType, TransactionAmount, BalanceAfter, Description)
+    VALUES (NEW.AccountNumber, 'Withdrawal', NEW.WithdrawAmount, NEW.AfterBalance,
+            CONCAT('Withdrawn amount: ', NEW.WithdrawAmount));
 END$$
 DELIMITER ;
 
+DELIMITER $$
+CREATE TRIGGER log_deposit
+AFTER INSERT ON DepositHistory
+FOR EACH ROW
+BEGIN
+    INSERT INTO BalanceLog (AccountNumber, OldBalance, NewBalance, ChangeAmount, ChangeType)
+    VALUES (NEW.AccountNumber, NEW.BeforeBalance, NEW.AfterBalance, NEW.DepositAmount, 'Deposit');
 
--- Trigger for updating balances when a money transfer happens
+    INSERT INTO TransactionHistory (AccountNumber, TransactionType, TransactionAmount, BalanceAfter, Description)
+    VALUES (NEW.AccountNumber, 'Deposit', NEW.DepositAmount, NEW.AfterBalance,
+            CONCAT('Deposited amount: ', NEW.DepositAmount));
+END$$
+DELIMITER ;
+
 DELIMITER $$
 CREATE TRIGGER log_transfer
 AFTER INSERT ON TransferMoney
 FOR EACH ROW
 BEGIN
-    DECLARE sender_balance INT;
-    DECLARE receiver_balance INT;
+    INSERT INTO TransactionHistory (AccountNumber, TransactionType, TransactionAmount, BalanceAfter, Description, ReferenceID)
+    VALUES (NEW.AccountNumber, 'Transfer', NEW.TransferAmount, NEW.SenderBalanceAfter,
+            CONCAT('Transferred to ', NEW.ToAccount, IFNULL(CONCAT(' - ', NEW.Description), '')),
+            CONCAT('TXN', NEW.TransferId));
 
-    -- Fetch the sender's current balance (no need to update balance here)
-    SELECT Balance INTO sender_balance FROM Customer WHERE AccountNumber = NEW.AccountNumber;
-
-    -- Fetch the receiver's current balance
-    SELECT Balance INTO receiver_balance FROM Customer WHERE AccountNumber = NEW.ToAccount;
-
-    -- Insert the transaction into TransactionHistory for sender
-    INSERT INTO TransactionHistory (AccountNumber, TransactionType, TransactionAmount, Description)
-    VALUES (NEW.AccountNumber, 'Transfer', NEW.TransferAmount, CONCAT('Transferred to ', NEW.ToAccount));
-
-    -- Insert the transaction into TransactionHistory for receiver
-    INSERT INTO TransactionHistory (AccountNumber, TransactionType, TransactionAmount, Description)
-    VALUES (NEW.ToAccount, 'Receive', NEW.TransferAmount, CONCAT('Received from ', NEW.AccountNumber));
-
-    -- Insert the balance log for sender
     INSERT INTO BalanceLog (AccountNumber, OldBalance, NewBalance, ChangeAmount, ChangeType)
-    VALUES (NEW.AccountNumber, sender_balance+NEW.TransferAmount, sender_balance, NEW.TransferAmount, 'Transfer');
+    VALUES (NEW.AccountNumber, NEW.SenderBalanceAfter + NEW.TransferAmount, NEW.SenderBalanceAfter, NEW.TransferAmount, 'Transfer');
 
-    -- Insert the balance log for receiver
+    INSERT INTO TransactionHistory (AccountNumber, TransactionType, TransactionAmount, BalanceAfter, Description, ReferenceID)
+    VALUES (NEW.ToAccount, 'Receive', NEW.TransferAmount, NEW.ReceiverBalanceAfter,
+            CONCAT('Received from ', NEW.AccountNumber, IFNULL(CONCAT(' - ', NEW.Description), '')),
+            CONCAT('TXN', NEW.TransferId));
+
     INSERT INTO BalanceLog (AccountNumber, OldBalance, NewBalance, ChangeAmount, ChangeType)
-    VALUES (NEW.ToAccount, receiver_balance-NEW.TransferAmount, receiver_balance, NEW.TransferAmount, 'Receive');
+    VALUES (NEW.ToAccount, NEW.ReceiverBalanceAfter - NEW.TransferAmount, NEW.ReceiverBalanceAfter, NEW.TransferAmount, 'Receive');
 END$$
 DELIMITER ;
 
-
--- Trigger for handling loan approval and balance update
-DELIMITER $$ 
+DELIMITER $$
 CREATE TRIGGER after_loan_approval
 AFTER UPDATE ON Loan
 FOR EACH ROW
 BEGIN
     DECLARE current_balance DECIMAL(20,2);
-    DECLARE total_interest DECIMAL(20,2);
-    DECLARE total_amount DECIMAL(20,2);
+    DECLARE new_balance DECIMAL(20,2);
 
-    -- Only proceed if the loan is approved
-    IF NEW.ApprovalStatus = 'Approved' THEN
-        -- Fetch the customer's current balance
-        SELECT Balance INTO current_balance 
-        FROM Customer 
-        WHERE AccountNumber = NEW.AccountNumber;
+    IF NEW.ApprovalStatus = 'Approved' AND OLD.ApprovalStatus = 'Pending' THEN
+        SELECT Balance INTO current_balance FROM Customer WHERE AccountNumber = NEW.AccountNumber;
+        SET new_balance = current_balance + NEW.LoanAmount;
 
-        -- Calculate the total interest based on the loan amount, interest rate, and duration
-        SET total_interest = (NEW.LoanAmount * NEW.LoanInterest / 100) * (NEW.LoanDurationMonths / 12);
+        UPDATE Customer SET Balance = new_balance WHERE AccountNumber = NEW.AccountNumber;
 
-        -- Calculate the total payable amount (principal + interest)
-        SET total_amount = NEW.LoanAmount + total_interest;
+        INSERT INTO TransactionHistory (AccountNumber, TransactionType, TransactionAmount, BalanceAfter, Description)
+        VALUES (NEW.AccountNumber, 'Loan Approved', NEW.LoanAmount, new_balance,
+                CONCAT('Loan #', NEW.LoanID, ' approved. Amount: ', NEW.LoanAmount, ', Interest: ', NEW.LoanInterest, '%'));
 
-        -- Update the customer's balance by adding the loan amount
-        UPDATE Customer
-        SET Balance = current_balance + NEW.LoanAmount
-        WHERE AccountNumber = NEW.AccountNumber;
-
-        -- Insert into TransactionHistory to log the loan approval
-        INSERT INTO TransactionHistory (AccountNumber, TransactionType, TransactionAmount, Description)
-        VALUES (NEW.AccountNumber, 'Loan Approved', NEW.LoanAmount, 
-                CONCAT('Loan amount of ', NEW.LoanAmount, ' approved with interest rate of ', NEW.LoanInterest, '%'));
-
-        -- Insert into BalanceLog to log the change in balance
         INSERT INTO BalanceLog (AccountNumber, OldBalance, NewBalance, ChangeAmount, ChangeType)
-        VALUES (NEW.AccountNumber, current_balance, current_balance + NEW.LoanAmount, NEW.LoanAmount, 'Loan Approval');
+        VALUES (NEW.AccountNumber, current_balance, new_balance, NEW.LoanAmount, 'Loan Approval');
+
+        INSERT INTO Notification (AccountNumber, Title, Message, Type)
+        VALUES (NEW.AccountNumber, 'Loan Approved!',
+                CONCAT('Your loan of ', NEW.LoanAmount, ' has been approved and credited to your account.'), 'success');
+    END IF;
+
+    IF NEW.ApprovalStatus = 'Denied' AND OLD.ApprovalStatus = 'Pending' THEN
+        INSERT INTO Notification (AccountNumber, Title, Message, Type)
+        VALUES (NEW.AccountNumber, 'Loan Application Denied',
+                CONCAT('Your loan application of ', NEW.LoanAmount, ' has been denied.'), 'warning');
     END IF;
 END$$
 DELIMITER ;
-
-
--- DELETE FROM TransactionHistory;
--- DELETE FROM BalanceLog;
--- DELETE FROM WithdrawHistory;
--- DELETE FROM TransferMoney;
-
--- TRUNCATE TABLE TransactionHistory;
--- TRUNCATE TABLE BalanceLog;
--- TRUNCATE TABLE WithdrawHistory;
--- TRUNCATE TABLE TransferMoney;
-
--- DELETE FROM Customer;
--- SHOW TABLE STATUS LIKE 'Customer';
--- ALTER TABLE Customer
--- ADD COLUMN AccountVerify TINYINT DEFAULT 0;
-
-
- -- 0 for not verified, 1 for verified
-
-
--- UPDATE Customer
--- SET Balance = 15000.00;
- -- DROP TRIGGER IF EXISTS after_loan_approval;
-
-
-
-
-

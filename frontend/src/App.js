@@ -1,34 +1,42 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import FormComponent from "./components/FormComponent";
 import Home from "./components/Home";
-import NotFound from "./components/NotFound";
+import AdminLogin from "./components/Adminlogin";
+import AdminRegister from "./components/AdminRegister";
 import Admin from "./components/Admin";
+import NotFound from "./components/NotFound";
+import Unauthorized from "./components/Unauthorized";
+import { isAuthenticated, isAdminAuthenticated } from "./utlis/auth";
 import "./App.css";
 
-// Function to verify JWT token
-const isAuthenticated = () => {
-  const token = localStorage.getItem("jwtToken");
-  //console.log("Token in localStorage:", token); // Debugging log
-  return token ? true : false;
+const PrivateRoute = ({ children }) => {
+  return isAuthenticated() ? children : <Navigate to="/" replace />;
 };
 
-// Private route component to protect routes
-const PrivateRoute = ({ children }) => {
-  console.log(
-    "PrivateRoute is being called. Authenticated:",
-    isAuthenticated()
-  );
-  return isAuthenticated() ? children : <Navigate to="/" />;
+const AdminPrivateRoute = ({ children }) => {
+  return isAdminAuthenticated() ? children : <Navigate to="/admin/login" replace />;
 };
 
 function App() {
   return (
     <div className="App">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
       <Routes>
-        {/* Public route for login */}
         <Route path="/" element={<FormComponent />} />
-        {/* Private route for home */}
         <Route
           path="/home"
           element={
@@ -37,8 +45,17 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route path="/admin" element={<Admin />} />
-        {/* 404 route for unmatched paths */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/register" element={<AdminRegister />} />
+        <Route
+          path="/admin"
+          element={
+            <AdminPrivateRoute>
+              <Admin />
+            </AdminPrivateRoute>
+          }
+        />
+        <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>

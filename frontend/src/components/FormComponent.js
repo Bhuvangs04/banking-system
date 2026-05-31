@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import LoginForm from "./login"; // Import the LoginForm component
-import SignupForm from "./signup"; // Import the SignupForm component
+import LoginForm from "./login";
+import SignupForm from "./signup";
 
 function FormComponent() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -10,12 +10,14 @@ function FormComponent() {
   };
 
   return (
-    <div>
-      {isSignUp ? (
-        <SignupForm toggleForm={toggleForm} /> // Show SignupForm if isSignUp is true
-      ) : (
-        <LoginForm toggleForm={toggleForm} /> // Show LoginForm if isSignUp is false
-      )}
+    <div className="auth-page">
+      <div className="auth-container">
+        {isSignUp ? (
+          <SignupForm toggleForm={toggleForm} />
+        ) : (
+          <LoginForm toggleForm={toggleForm} />
+        )}
+      </div>
     </div>
   );
 }

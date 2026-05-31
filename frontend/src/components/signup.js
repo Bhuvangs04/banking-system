@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "../App.css";
-import Lottie from "react-lottie-player";
-import loadingAnimation from "./Animation - 1729331805975.json"; // Update with correct path
+import { toast } from "react-toastify";
+import { HiOutlineEye, HiOutlineEyeOff, HiOutlineLibrary } from "react-icons/hi";
+import api from "../utlis/api";
 
 function SignupForm({ toggleForm }) {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     accountType: "",
@@ -18,34 +18,35 @@ function SignupForm({ toggleForm }) {
     password: "",
     confirmPassword: "",
   });
-  const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-
   const navigate = useNavigate();
-
-  const handlePasswordVisibility = () => {
-    setPasswordVisible(!passwordVisible);
-  };
-
-  const handleConfirmPasswordVisibility = () => {
-    setConfirmPasswordVisible(!confirmPasswordVisible);
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const getPasswordStrength = () => {
+    const p = formData.password;
+    if (!p) return { level: 0, label: "", color: "" };
+    let score = 0;
+    if (p.length >= 8) score++;
+    if (/[A-Z]/.test(p)) score++;
+    if (/[0-9]/.test(p)) score++;
+    if (/[^A-Za-z0-9]/.test(p)) score++;
+    if (score <= 1) return { level: 1, label: "Weak", color: "var(--error)" };
+    if (score === 2) return { level: 2, label: "Fair", color: "var(--warning)" };
+    if (score === 3) return { level: 3, label: "Good", color: "var(--accent)" };
+    return { level: 4, label: "Strong", color: "var(--success)" };
   };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+
     if (formData.password !== formData.confirmPassword) {
-      setErrorMessage("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
+
     if (
       !formData.username ||
       !formData.accountType ||
@@ -55,159 +56,238 @@ function SignupForm({ toggleForm }) {
       !formData.city ||
       !formData.password
     ) {
-      setErrorMessage("Please fill out all fields.");
+      toast.error("Please fill out all fields.");
       return;
     }
 
+    if (formData.password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      setLoading(true);
-      const response = await axios.post(
-        "http://localhost:8081/customer/createAccount",
-        {
-          customerName: formData.username,
-          AccountType: formData.accountType,
-          customerPhone: formData.phoneNumber,
-          customerEmail: formData.email,
-          customerAddress: formData.address,
-          customerCity: formData.city,
-          CustomerPassword: formData.password,
-        }
+      const response = await api.post("/customer/createAccount", {
+        customerName: formData.username,
+        AccountType: formData.accountType,
+        customerPhone: formData.phoneNumber,
+        customerEmail: formData.email,
+        customerAddress: formData.address,
+        customerCity: formData.city,
+        CustomerPassword: formData.password,
+      });
+
+      localStorage.setItem("jwtToken", response.data.token);
+      if (response.data.refreshToken) {
+        localStorage.setItem("refreshToken", response.data.refreshToken);
+      }
+
+      toast.success(
+        `Account created! Your account number is ${response.data.accountNumber}. Please wait for admin verification.`
       );
-      const { token } = response.data;
-      localStorage.setItem("jwtToken", token);
-      setSuccessMessage("Your account is being created. Please wait...");
-      setTimeout(() => {
-        navigate("/home");
-      }, 10000);
+      setTimeout(() => navigate("/home"), 2000);
     } catch (error) {
-      setErrorMessage("Sign-up failed. Please try again.");
+      toast.error(error.response?.data?.error || "Sign-up failed. Please try again.");
     } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 10000);
+      setIsLoading(false);
     }
   };
 
-  return (
-    <section>
-      <div className="user signupBx">
-        <div className="formBx">
-          {loading ? (
-            <div className="loading-screen">
-              <p>{successMessage}</p>
-              <Lottie
-                loop
-                animationData={loadingAnimation}
-                play
-                style={{ width: 300, height: 300 }}
-              />
-            </div>
-          ) : (
-            <form onSubmit={handleSignUp}>
-              <h2>Create an account</h2>
-              <input
-                type="text"
-                name="username"
-                placeholder="Username"
-                value={formData.username}
-                onChange={handleInputChange}
-                required
-              />
-              <select
-                name="accountType"
-                value={formData.accountType}
-                onChange={handleInputChange}
-                className="input-field"
-              >
-                <option value="" disabled>
-                  Select Account Type
-                </option>
-                <option value="Savings">Savings</option>
-                <option value="Current">Current</option>
-              </select>
+  const strength = getPasswordStrength();
 
-              <input
-                type="tel"
-                name="phoneNumber"
-                placeholder="Phone Number"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                maxLength="10"
-                required
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
-              <input
-                type="text"
-                name="address"
-                placeholder="Address"
-                value={formData.address}
-                onChange={handleInputChange}
-                required
-              />
-              <input
-                type="text"
-                name="city"
-                placeholder="City"
-                value={formData.city}
-                onChange={handleInputChange}
-                required
-              />
-              <input
-                type={passwordVisible ? "text" : "password"}
-                name="password"
-                placeholder="Create Password"
-                value={formData.password}
-                onChange={(e) => handleInputChange(e)}
-              />
-              <input
-                type={confirmPasswordVisible ? "text" : "password"}
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={(e) => handleInputChange(e)}
-              />
-              <div>
-                <input
-                  type="button"
-                  value={passwordVisible ? "Hide Password" : "Show Password"}
-                  onClick={handlePasswordVisibility}
-                />
-                <input
-                  type="button"
-                  value={
-                    confirmPasswordVisible
-                      ? "Hide Confirm Password"
-                      : "Show Confirm Password"
-                  }
-                  onClick={handleConfirmPasswordVisibility}
-                />
-              </div>
-              {errorMessage && <p className="error">{errorMessage}</p>}
-              <input type="submit" value="Sign Up" />
-              <p className="signup">
-                Already have an account?{" "}
-                <a href="#" onClick={toggleForm}>
-                  Sign in.
-                </a>
-              </p>
-            </form>
-          )}
+  return (
+    <div className="auth-card animate-scale-in" style={{ maxWidth: "520px" }}>
+      <div className="auth-logo">
+        <div className="auth-logo-icon">
+          <HiOutlineLibrary />
         </div>
-        <div className="imgBx">
-          <img
-            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1470&q=80"
-            alt="Signup"
+        <h1>SecureBank</h1>
+      </div>
+      <p className="auth-subtitle">Create your bank account</p>
+
+      <form className="auth-form" onSubmit={handleSignUp}>
+        <div className="form-group">
+          <label>Full Name</label>
+          <input
+            type="text"
+            name="username"
+            id="signup-name"
+            className="form-input"
+            placeholder="Enter your full name"
+            value={formData.username}
+            onChange={handleInputChange}
           />
         </div>
+
+        <div className="form-group">
+          <label>Account Type</label>
+          <select
+            name="accountType"
+            id="signup-account-type"
+            className="form-select"
+            value={formData.accountType}
+            onChange={handleInputChange}
+          >
+            <option value="" disabled>
+              Select Account Type
+            </option>
+            <option value="Savings">Savings</option>
+            <option value="Current">Current</option>
+          </select>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Phone Number</label>
+            <input
+              type="tel"
+              name="phoneNumber"
+              id="signup-phone"
+              className="form-input"
+              placeholder="10-digit phone"
+              value={formData.phoneNumber}
+              onChange={handleInputChange}
+              maxLength="15"
+            />
+          </div>
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              name="email"
+              id="signup-email"
+              className="form-input"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={handleInputChange}
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Address</label>
+            <input
+              type="text"
+              name="address"
+              id="signup-address"
+              className="form-input"
+              placeholder="Street address"
+              value={formData.address}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="form-group">
+            <label>City</label>
+            <input
+              type="text"
+              name="city"
+              id="signup-city"
+              className="form-input"
+              placeholder="Your city"
+              value={formData.city}
+              onChange={handleInputChange}
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Password</label>
+          <div style={{ position: "relative" }}>
+            <input
+              type={passwordVisible ? "text" : "password"}
+              name="password"
+              id="signup-password"
+              className="form-input"
+              placeholder="Min 8 characters"
+              value={formData.password}
+              onChange={handleInputChange}
+              style={{ paddingRight: "44px" }}
+            />
+            <span
+              className="form-input-icon"
+              onClick={() => setPasswordVisible(!passwordVisible)}
+            >
+              {passwordVisible ? <HiOutlineEyeOff size={18} /> : <HiOutlineEye size={18} />}
+            </span>
+          </div>
+          {formData.password && (
+            <div style={{ marginTop: "8px" }}>
+              <div
+                style={{
+                  height: "4px",
+                  borderRadius: "2px",
+                  background: "var(--border)",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${strength.level * 25}%`,
+                    height: "100%",
+                    background: strength.color,
+                    transition: "all 0.3s ease",
+                    borderRadius: "2px",
+                  }}
+                />
+              </div>
+              <span style={{ fontSize: "11px", color: strength.color, marginTop: "4px", display: "block" }}>
+                {strength.label}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label>Confirm Password</label>
+          <div style={{ position: "relative" }}>
+            <input
+              type={confirmPasswordVisible ? "text" : "password"}
+              name="confirmPassword"
+              id="signup-confirm-password"
+              className="form-input"
+              placeholder="Re-enter password"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              style={{ paddingRight: "44px" }}
+            />
+            <span
+              className="form-input-icon"
+              onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+            >
+              {confirmPasswordVisible ? <HiOutlineEyeOff size={18} /> : <HiOutlineEye size={18} />}
+            </span>
+          </div>
+          {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+            <span style={{ fontSize: "12px", color: "var(--error)", marginTop: "4px", display: "block" }}>
+              Passwords don't match
+            </span>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          id="signup-submit"
+          className="btn btn-primary btn-block btn-lg"
+          disabled={isLoading}
+        >
+          {isLoading ? "Creating Account..." : "Create Account"}
+        </button>
+      </form>
+
+      <div className="auth-footer">
+        Already have an account?{" "}
+        <a
+          href="#login"
+          onClick={(e) => {
+            e.preventDefault();
+            toggleForm();
+          }}
+        >
+          Sign In
+        </a>
       </div>
-    </section>
+    </div>
   );
 }
 
